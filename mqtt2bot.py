@@ -29,7 +29,7 @@ def last_seen(username):
 
 
 def on_message(mosq, obj, msg):
-	if msg.topic == 'door/outer/open/username':
+	if msg.topic == 'door/outer/opened/username':
 		ls = last_seen(msg.payload)
 		if not ls:
 			send_to_bot("%s opened the outer door." % msg.payload)
