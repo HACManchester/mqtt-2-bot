@@ -13,6 +13,7 @@ config = yaml.safe_load(config_f)
 config_f.close()
 
 def send_to_bot(message):
+    global config
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((config['bot']['server'], config['bot']['port']))
