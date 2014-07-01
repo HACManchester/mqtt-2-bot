@@ -1,0 +1,7 @@
+mqtt:
+  server: alfred
+  name: mqtt2bot
+bot:
+  server: localhost
+  port: 12345
+  channel: #hacman
