@@ -21,7 +21,6 @@ def send_to_bot(message):
     except Exception, e:
         pass
 
-
 def last_seen(username):
     conn = sqlite3.connect('last_seen.db')
     c = conn.cursor()
@@ -36,19 +35,22 @@ def last_seen(username):
 
 
 def on_message(mosq, obj, msg):
-    if msg.topic == 'door/outer/opened/username':
-        ls = last_seen(msg.payload)
-        if not ls:
-            send_to_bot("%s opened the outer door." % msg.payload)
-        else:
-            send_to_bot("%s opened the outer door. Last seen %s." % (msg.payload, pretty_date(ls[0])))
-    elif msg.topic == 'door/outer/buzzer':
-        send_to_bot(random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB', 'Buzzard']))
-    elif msg.topic == 'door/outer/invalidcard':
-        send_to_bot("Unknown card at door")
-    elif msg.topic == 'bot/outgoing':
-        send_to_bot(msg.payload)
-
+	if msg.topic == 'door/outer/opened/username':
+		ls = last_seen(msg.payload)
+		if not ls:
+			send_to_bot("%s opened the outer door." % msg.payload)
+		else:
+			send_to_bot("%s opened the outer door. Last seen %s." % (msg.payload, pretty_date(ls[0])))
+	elif msg.topic == 'door/outer/buzzer':
+		send_to_bot("%s" % random.choice(['Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'Buzzer', 'rezzuB', 'Buzzard']))
+	elif msg.topic == 'door/outer/invalidcard':
+		send_to_bot("Unknown card at door")
+	elif msg.topic == 'bot/outgoing':
+		send_to_bot(msg.payload)
+	elif msg.topic == 'door/shutter/opened':
+		send_to_bot("Shutter Opened!")
+	elif msg.topic == 'door/shutter/closed':
+		send_to_bot("Shutter Closed!")
 
 conn = sqlite3.connect('last_seen.db')
 c = conn.cursor()
@@ -56,13 +58,16 @@ c.execute("CREATE TABLE IF NOT EXISTS lastseen (username TEXT, timestamp INTEGER
 conn.commit()
 conn.close()
 
-mqttc = mosquitto.Mosquitto(config['mqtt']['name'])
-mqttc.connect(config['mqtt']['server'], 1883, 60, True)
-
-mqttc.subscribe("door/outer/#")
-mqttc.subscribe("bot/outgoing")
-mqttc.on_message = on_message
-
-while mqttc.loop() == 0:
-    pass
-
+mqttc = mosquitto.Mosquitto(config['mqtt']['name'])	
+while True:
+	mqttc.connect(config['mqtt']['server'])
+	mqttc.subscribe("door/outer/#")
+	mqttc.subscribe("bot/outgoing")
+	mqttc.subscribe("door/shutter/#")
+	mqttc.on_message = on_message
+	 
+	while mqttc.loop() == 0:
+		pass
+	print ("MQTT connection lost!")
+	mqttc.disconnect()
+	time.sleep(5)
